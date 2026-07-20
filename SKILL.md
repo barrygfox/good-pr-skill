@@ -308,3 +308,34 @@ committing changes that will become a PR. Use it to:
 5. **Enforce minimal blast radius** — check the diff touches only the minimum viable set of files
 6. **Validate test-first discipline** — confirm a regression test exists that fails against the
    current baseline and passes after the fix
+
+---
+
+## Wrapup — After the PR Is Opened
+
+Once the PR URL is returned, output a checklist summary showing what was included. One row per
+checklist item, ✅ for satisfied, ❌ for any gap that was accepted as-is (explain why inline).
+
+Example format:
+
+```
+PR: https://github.com/org/repo/pull/N
+
+| Check | Status |
+|---|---|
+| Title names the bug, not the diff | ✅ |
+| `## Problem` with error cause and mechanism | ✅ |
+| `## Solution` with Alternatives Considered table | ✅ |
+| `## Changes` table | ✅ |
+| `## What Does Not Change` | ✅ |
+| `## Breaking Changes: None.` | ✅ |
+| Regression test (fails before fix, passes after) | ✅ |
+| `## Regression Tests` — timing test not possible, explained | ✅ |
+| `## CI Notes` — pre-existing failures documented | ✅ |
+| Duplicate/overlap check — none found | ✅ |
+| Blast radius: N files, M lines | ✅ |
+```
+
+Keep it tight — the table is a receipt, not a re-explanation. If an item was skipped for a valid
+reason (trivial one-liner, no CI failures, no breaking changes), mark ✅ with a note in the
+Status cell rather than omitting the row.
