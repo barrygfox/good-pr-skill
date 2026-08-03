@@ -23,6 +23,41 @@ every PR — fixes, features, refactors, external contributions, and automated t
 
 ---
 
+## Clean Base and Single-Commit Invariant
+
+Every PR must be created from the latest tip of the repository's canonical upstream base
+branch, normally `upstream/main` or the repository's configured default branch. Local `main`
+is not a valid PR base because it may contain unrelated commits that are not present upstream.
+
+Before making or committing the fix:
+
+```bash
+git fetch --prune <base-remote> <base-branch>
+git switch --create <pr-branch> <base-remote>/<base-branch>
+```
+
+Resolve `<base-remote>` from the repository's actual PR target; do not assume that `origin` is
+the upstream repository or that a local `main` is current. If the fix was already applied to
+local `main`, do not branch from it. Create the PR branch from the fetched upstream tip and
+bring over only the intended patch (for example, with `git cherry-pick <fix-commit>` or by
+staging the intended diff manually); never cherry-pick the whole local branch.
+
+Before opening the PR, the branch must satisfy all of these conditions:
+
+- `git merge-base --is-ancestor <base-remote>/<base-branch> HEAD` succeeds
+- `git rev-list --count <base-remote>/<base-branch>..HEAD` returns exactly `1`
+- `git rev-parse HEAD^` equals `git rev-parse <base-remote>/<base-branch>`
+- `git diff --check <base-remote>/<base-branch>...HEAD` is clean
+
+The one commit must contain the complete, focused fix and its tests. If there are multiple
+intended commits, squash them before opening the PR; if there are unrelated commits, rebuild
+the branch from the upstream tip rather than including them. The PR must explicitly target the
+same `<base-remote>/<base-branch>` repository and branch. When creating it, pass the base
+explicitly (for example, `gh pr create --base <base-branch> --head <pr-branch>`), rather than
+relying on a CLI or hosting-provider default.
+
+---
+
 ## PR Checklist
 
 ### 1. Title — Conventional Commit Format
@@ -265,6 +300,9 @@ wastes reviewer time and creates merge conflicts.
 ## Self-Review Checklist (Run Before Opening PR)
 
 - [ ] Title follows `type(scope): description` convention
+- [ ] PR branch was created from the fetched canonical upstream base tip, not local `main`
+- [ ] PR branch contains exactly one direct commit on top of the upstream base
+- [ ] `HEAD^` equals the upstream base tip and `git diff --check <base>...HEAD` is clean
 - [ ] PR body has `Problem`, `Solution`, `Changes`, `What Does Not Change` sections
 - [ ] Test plan lists concrete verification steps (not just "tests pass")
 - [ ] New code has tests; modified code has updated tests
@@ -300,13 +338,18 @@ The following checks are **not yet in CI** but should be added:
 Trigger this skill whenever the user asks to create, prepare, or open a PR — or before
 committing changes that will become a PR. Use it to:
 
-1. **Duplicate and overlap check** — search `gh issue list --search` and `gh pr list --search`
+1. **Resolve and fetch the PR base** — identify the canonical target repository and branch,
+   fetch its latest tip, and create the work branch from that tip; never use local `main` as
+   the base
+2. **Enforce one commit** — carry over only the intended fix and tests, squash if necessary,
+   and verify the branch has exactly one direct commit over the fetched base
+3. **Duplicate and overlap check** — search `gh issue list --search` and `gh pr list --search`
    against both local and upstream remotes before opening the PR
-2. **Audit the working diff** against the self-review checklist before the PR is created
-3. **Apply missing sections** — write the PR body, test plan, and regression test content
-4. **Flag gaps** — report which required sections are missing or malformed so they can be fixed
-5. **Enforce minimal blast radius** — check the diff touches only the minimum viable set of files
-6. **Validate test-first discipline** — confirm a regression test exists that fails against the
+4. **Audit the working diff** against the self-review checklist before the PR is created
+5. **Apply missing sections** — write the PR body, test plan, and regression test content
+6. **Flag gaps** — report which required sections are missing or malformed so they can be fixed
+7. **Enforce minimal blast radius** — check the diff touches only the minimum viable set of files
+8. **Validate test-first discipline** — confirm a regression test exists that fails against the
    current baseline and passes after the fix
 
 ---
