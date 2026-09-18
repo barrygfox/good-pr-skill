@@ -98,7 +98,19 @@ How does this PR fix it? This is the "why", not the "what":
 replace this section with `## Solution` → `Trivial one-liner; diff is self-explanatory.`
 
 #### `## Changes`
-Enumerate every meaningful change. Tables are encouraged:
+Lead with the smallest view that makes the key point, then support it with prose — never
+prose alone. Match the sketch to the change:
+- Logic or algorithm → pseudocode
+- Control flow → call tree
+- UI structure → component tree, including state and module boundaries that matter
+- Refactor or moves → shallow file tree showing ownership
+- Small shape change → diff-sketch against the surrounding shape that already exists
+
+One sketch is typical, several are allowed, never all. Keep only the calls, files, props,
+states, and boundaries needed to make the point. Place each visual next to the short text
+it supports.
+
+Enumerate every meaningful change beneath the sketch. Tables are encouraged:
 
 ```
 **`src/foo/bar.py`** — what changed here
@@ -161,7 +173,14 @@ primary evidence that the regression is resolved.
 
 ### Test Plan Structure
 
-For every PR, structure the test plan in three layers:
+For every PR, structure the test plan in three layers, and present the result as an evidence
+pair the reviewer can check at a glance:
+
+- **Before:** the failing run with its exact failure message, or the before screenshot.
+- **After:** the same test passing, or the after screenshot.
+
+For visual changes, before/after screenshots are the evidence. For behaviour changes, the
+failing-before/passing-after run is the evidence. "Tests pass" on its own is not evidence.
 
 **1. Unit / module tests** — specific, isolated, fast
 List each new or changed test file and what it covers. Prefer explicit `test_foo.py::test_bar`
@@ -258,6 +277,16 @@ the blast radius is too wide.
    call-sites, list them: `"`src/utils/cache.py`" is used in 14 call-sites; regression-tested
    at the two most heavily used: `engine.py:210` and `daemon.py:88`."
 
+### Door and Blast-Radius Summary (Reviewer-Facing)
+
+The rules above keep the diff small; the body must also state the merge risk in two lines a
+reviewer can read without opening the diff:
+
+- `Door:` one-way or two-way, with the reason. A PR that is cheap to revert is a two-way
+  door. Destructive actions and hard-to-reverse decisions are one-way doors.
+- `Blast radius:` the potential impact in reviewer terms — affected surfaces, consumers,
+  call-sites — not the file count.
+
 ### If a PR Touches ≥5 Files
 
 Consider:
@@ -305,6 +334,9 @@ wastes reviewer time and creates merge conflicts.
 - [ ] PR branch contains exactly one direct commit on top of the upstream base
 - [ ] `HEAD^` equals the upstream base tip and `git diff --check <base>...HEAD` is clean
 - [ ] PR body has `Problem`, `Solution`, `Changes`, `What Does Not Change` sections
+- [ ] `## Changes` leads with a shape sketch, not prose alone
+- [ ] Test plan reads as a before/after evidence pair
+- [ ] Body states the merge door (one-way/two-way plus reason) and blast-radius summary
 - [ ] Test plan lists concrete verification steps (not just "tests pass")
 - [ ] New code has tests; modified code has updated tests
 - [ ] Bug-fix PRs include a regression test that FAILS against the current (broken) baseline and PASSES after the fix
@@ -371,6 +403,9 @@ PR: https://github.com/org/repo/pull/N
 | `## Problem` with error cause and mechanism | ✅ |
 | `## Solution` with Alternatives Considered table | ✅ |
 | `## Changes` table | ✅ |
+| Shape sketch leads `## Changes` | ✅ |
+| Evidence pair (before/after) | ✅ |
+| Merge door plus blast-radius summary | ✅ |
 | `## What Does Not Change` | ✅ |
 | `## Breaking Changes: None.` | ✅ |
 | Regression test (fails before fix, passes after) | ✅ |
