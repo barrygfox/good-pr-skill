@@ -3,7 +3,7 @@ name: good-pr
 description: Standards for well-formed, verifiable pull requests. Use when creating, preparing, or opening a PR — or before committing changes that will become a PR. Ensures minimal blast radius, regression tests, and complete PR body sections.
 license: MIT
 metadata:
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Good PR — Standards for Well-Formed, Verifiable Pull Requests
